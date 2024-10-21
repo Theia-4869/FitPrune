@@ -31,7 +31,7 @@ build = ["build", "twine"]
 "Bug Tracker" = "https://github.com/haotian-liu/LLaVA/issues"
 
 [tool.setuptools.packages.find]
-exclude = ["assets*", "benchmark*", "docs", "dist*", "playground*", "scripts*", "tests*"]
+exclude = ["assets*", "images*", "benchmark*", "docs*", "dist*", "playground*", "scripts*", "tests*"]
 
 [tool.wheel]
-exclude = ["assets*", "benchmark*", "docs", "dist*", "playground*", "scripts*", "tests*"]
+exclude = ["assets*", "images*", "benchmark*", "docs*", "dist*", "playground*", "scripts*", "tests*"]
