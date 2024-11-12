@@ -56,7 +56,13 @@ def eval_model(args):
     disable_torch_init()
     model_path = os.path.expanduser(args.model_path)
     model_name = get_model_name_from_path(model_path)
+    if args.use_fitprune:
+        model_name = model_name + "-fitprune"
     tokenizer, model, image_processor, context_len = load_pretrained_model(model_path, args.model_base, model_name)
+    
+    model.config.use_fitprune = args.use_fitprune
+    model.config.reduction_ratio = args.reduction_ratio
+    print("Use fitprune:", model.config.use_fitprune, ", Reduction ratio:", model.config.reduction_ratio)
 
     questions = pd.read_table(os.path.expanduser(args.question_file))
     questions = get_chunk(questions, args.num_chunks, args.chunk_idx)
@@ -155,6 +161,8 @@ if __name__ == "__main__":
     parser.add_argument("--all-rounds", action="store_true")
     parser.add_argument("--single-pred-prompt", action="store_true")
     parser.add_argument("--lang", type=str, default="en")
+    parser.add_argument("--use-fitprune", action="store_true")
+    parser.add_argument("--reduction-ratio", type=int, default=0)
     args = parser.parse_args()
 
     eval_model(args)

@@ -1,16 +1,23 @@
 #!/bin/bash
 
+CKPT="llava-v1.5-7b"
+METHOD="fitprune"
+R=${1}
+PARAM="R_${R}"
+
 python -m llava.eval.model_vqa_science \
-    --model-path liuhaotian/llava-v1.5-13b \
-    --question-file ./playground/data/eval/scienceqa/llava_test_CQM-A.json \
-    --image-folder ./playground/data/eval/scienceqa/images/test \
-    --answers-file ./playground/data/eval/scienceqa/answers/llava-v1.5-13b.jsonl \
+    --model-path /mnt/bn/bes-nas-zqz-lq-v6arnold6/mlx/users/zhangqizhe/huggingface/${CKPT} \
+    --question-file ./playground/data/eval/sqa/llava_test_CQM-A.json \
+    --image-folder ./playground/data/eval/sqa/images/test \
+    --answers-file ./playground/data/eval/sqa/answers/${CKPT}/${METHOD}/${PARAM}.jsonl \
     --single-pred-prompt \
+    --use-fitprune \
+    --reduction-ratio ${R} \
     --temperature 0 \
     --conv-mode vicuna_v1
 
 python llava/eval/eval_science_qa.py \
-    --base-dir ./playground/data/eval/scienceqa \
-    --result-file ./playground/data/eval/scienceqa/answers/llava-v1.5-13b.jsonl \
-    --output-file ./playground/data/eval/scienceqa/answers/llava-v1.5-13b_output.jsonl \
-    --output-result ./playground/data/eval/scienceqa/answers/llava-v1.5-13b_result.json
+    --base-dir ./playground/data/eval/sqa \
+    --result-file ./playground/data/eval/sqa/answers/${CKPT}/${METHOD}/${PARAM}.jsonl \
+    --output-file ./playground/data/eval/sqa/answers/${CKPT}/${METHOD}/${PARAM}_output.jsonl \
+    --output-result ./playground/data/eval/sqa/answers/${CKPT}/${METHOD}/${PARAM}_result.json \

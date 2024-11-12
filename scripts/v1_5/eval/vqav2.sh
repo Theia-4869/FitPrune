@@ -5,32 +5,40 @@ IFS=',' read -ra GPULIST <<< "$gpu_list"
 
 CHUNKS=${#GPULIST[@]}
 
-CKPT="llava-v1.5-13b"
-SPLIT="llava_vqav2_mscoco_test-dev2015"
+CKPT="llava-v1.5-7b"
+METHOD="fitprune"
+R=${1}
+PARAM="R_${R}"
 
 for IDX in $(seq 0 $((CHUNKS-1))); do
     CUDA_VISIBLE_DEVICES=${GPULIST[$IDX]} python -m llava.eval.model_vqa_loader \
-        --model-path liuhaotian/llava-v1.5-13b \
-        --question-file ./playground/data/eval/vqav2/$SPLIT.jsonl \
+        --model-path /mnt/bn/bes-nas-zqz-lq-v6arnold6/mlx/users/zhangqizhe/huggingface/${CKPT} \
+        --question-file ./playground/data/eval/vqav2/llava_vqav2_mscoco_test-dev2015.jsonl \
         --image-folder ./playground/data/eval/vqav2/test2015 \
-        --answers-file ./playground/data/eval/vqav2/answers/$SPLIT/$CKPT/${CHUNKS}_${IDX}.jsonl \
-        --num-chunks $CHUNKS \
-        --chunk-idx $IDX \
+        --answers-file ./playground/data/eval/vqav2/answers/${CKPT}/${METHOD}/${PARAM}/${CHUNKS}_${IDX}.jsonl \
+        --num-chunks ${CHUNKS} \
+        --chunk-idx ${IDX} \
+        --use-fitprune \
+        --reduction-ratio ${R} \
         --temperature 0 \
         --conv-mode vicuna_v1 &
 done
 
 wait
 
-output_file=./playground/data/eval/vqav2/answers/$SPLIT/$CKPT/merge.jsonl
+VQAV2DIR="./playground/data/eval/vqav2"
+output_file=${VQAV2DIR}/answers/${CKPT}/${METHOD}/${PARAM}/merge.jsonl
 
 # Clear out the output file if it exists.
 > "$output_file"
 
 # Loop through the indices and concatenate each file.
 for IDX in $(seq 0 $((CHUNKS-1))); do
-    cat ./playground/data/eval/vqav2/answers/$SPLIT/$CKPT/${CHUNKS}_${IDX}.jsonl >> "$output_file"
+    cat ./playground/data/eval/vqav2/answers/${CKPT}/${METHOD}/${PARAM}/${CHUNKS}_${IDX}.jsonl >> "$output_file"
 done
 
-python scripts/convert_vqav2_for_submission.py --split $SPLIT --ckpt $CKPT
+python scripts/convert_vqav2_for_submission.py \
+    --dir ${VQAV2DIR} \
+    --src answers/${CKPT}/${METHOD}/${PARAM}/merge.jsonl \
+    --dst answers_upload/${CKPT}/${METHOD}/${PARAM}/upload.json
 
